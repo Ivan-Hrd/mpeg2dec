@@ -19,6 +19,7 @@ src/extract_mpeg2
 src/corrupt_mpeg2
 
 # Sorties des tests / données
+/output/
 *.pgm
 *.ppm
 *.log

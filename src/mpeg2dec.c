@@ -200,6 +200,10 @@ static void handle_args (int argc, char ** argv)
 
 	case 'l':
 	    log_file = fopen (optarg, "w");
+	    if (log_file == NULL) {
+		perror (optarg);
+		exit (1);
+	    }
 	    break;
 
 	case 'p':
@@ -292,9 +296,11 @@ static void decode_mpeg2 (uint8_t * current, uint8_t * end)
 	    return;
 	case STATE_SEQUENCE:
 	    if (log_file)
-		fprintf (log_file, "SEQ width=%d height=%d frame_period=%d "
+		fprintf (log_file, "SEQ width=%d height=%d chroma_width=%d "
+			 "chroma_height=%d frame_period=%d "
 			 "progressive_sequence=%d\n",
 			 info->sequence->width, info->sequence->height,
+			 info->sequence->chroma_width, info->sequence->chroma_height,
 			 info->sequence->frame_period,
 			 (info->sequence->flags & SEQ_FLAG_PROGRESSIVE_SEQUENCE) != 0);
 	    /* might set nb fbuf, convert format, stride */
@@ -355,12 +361,16 @@ static void decode_mpeg2 (uint8_t * current, uint8_t * end)
 	    if (info->display_fbuf) {
 		if (log_file) {
 		    uint32_t flags = info->display_picture->flags;
+		    unsigned int nb_fields = info->display_picture->nb_fields;
+		    if (info->display_picture_2nd)
+			nb_fields += info->display_picture_2nd->nb_fields;
 		    fprintf (log_file, "FRAME %d type=%c progressive_frame=%d "
-			     "top_field_first=%d repeat_first_field=%d\n",
+			     "top_field_first=%d repeat_first_field=%d nb_fields=%d\n",
 			     log_count++, "?IPBD"[flags & PIC_MASK_CODING_TYPE],
 			     (flags & PIC_FLAG_PROGRESSIVE_FRAME) != 0,
 			     (flags & PIC_FLAG_TOP_FIELD_FIRST) != 0,
-			     (flags & PIC_FLAG_REPEAT_FIRST_FIELD) != 0);
+			     (flags & PIC_FLAG_REPEAT_FIRST_FIELD) != 0,
+			     nb_fields);
 		}
 		if (output->draw)
 		    output->draw (output, info->display_fbuf->buf,
