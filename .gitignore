@@ -1,0 +1,28 @@
+# Fichiers générés par ./configure (les configure, Makefile.in, aclocal.m4 restent versionnés)
+Makefile
+config.log
+config.status
+libtool
+stamp-h1
+include/config.h
+*.pc
+
+# Fichiers générés par make
+.deps/
+.libs/
+*.o
+*.lo
+*.la
+*.a
+src/mpeg2dec
+src/extract_mpeg2
+src/corrupt_mpeg2
+
+# Sorties des tests / données
+*.pgm
+*.ppm
+*.log
+*.pdf
+
+# macOS
+.DS_Store

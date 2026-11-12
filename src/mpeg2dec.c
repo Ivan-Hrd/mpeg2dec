@@ -53,6 +53,8 @@ static vo_instance_t * output;
 static int sigint = 0;
 static int total_offset = 0;
 static int verbose = 0;
+static FILE * log_file = NULL;
+static int log_count = 0;
 
 void dump_state (FILE * f, mpeg2_state_t state, const mpeg2_info_t * info,
 		 int offset, int verbose);
@@ -135,7 +137,7 @@ static void print_usage (char ** argv)
     vo_driver_t const * drivers;
 
     fprintf (stderr, "usage: "
-	     "%s [-h] [-o <mode>] [-s [<track>]] [-t <pid>] [-p] [-c] \\\n"
+	     "%s [-h] [-o <mode>] [-l <logfile>] [-s [<track>]] [-t <pid>] [-p] [-c] \\\n"
 	     "\t\t[-v] [-b <bufsize>] <file>\n"
 	     "\t-h\tdisplay help and available video output modes\n"
 	     "\t-s\tuse program stream demultiplexer, "
@@ -145,6 +147,7 @@ static void print_usage (char ** argv)
 	     "\t-c\tuse c implementation, disables all accelerations\n"
 	     "\t-v\tverbose information about the MPEG stream\n"
 	     "\t-b\tset input buffer size, default 4096 bytes\n"
+	     "\t-l\twrite sequence and picture flags to <logfile>\n"
 	     "\t-o\tvideo output mode\n", argv[0]);
 
     drivers = vo_drivers ();
@@ -162,7 +165,7 @@ static void handle_args (int argc, char ** argv)
     char * s;
 
     drivers = vo_drivers ();
-    while ((c = getopt (argc, argv, "hs::t:pco:vb::")) != -1)
+    while ((c = getopt (argc, argv, "hs::t:pco:vb::l:")) != -1)
 	switch (c) {
 	case 'o':
 	    for (i = 0; drivers[i].name != NULL; i++)
@@ -193,6 +196,10 @@ static void handle_args (int argc, char ** argv)
 		fprintf (stderr, "Invalid pid: %s\n", optarg);
 		print_usage (argv);
 	    }
+	    break;
+
+	case 'l':
+	    log_file = fopen (optarg, "w");
 	    break;
 
 	case 'p':
@@ -284,6 +291,12 @@ static void decode_mpeg2 (uint8_t * current, uint8_t * end)
 	case STATE_BUFFER:
 	    return;
 	case STATE_SEQUENCE:
+	    if (log_file)
+		fprintf (log_file, "SEQ width=%d height=%d frame_period=%d "
+			 "progressive_sequence=%d\n",
+			 info->sequence->width, info->sequence->height,
+			 info->sequence->frame_period,
+			 (info->sequence->flags & SEQ_FLAG_PROGRESSIVE_SEQUENCE) != 0);
 	    /* might set nb fbuf, convert format, stride */
 	    /* might set fbufs */
 	    if (output->setup (output, info->sequence->width,
@@ -340,6 +353,15 @@ static void decode_mpeg2 (uint8_t * current, uint8_t * end)
 	    /* draw current picture */
 	    /* might free frame buffer */
 	    if (info->display_fbuf) {
+		if (log_file) {
+		    uint32_t flags = info->display_picture->flags;
+		    fprintf (log_file, "FRAME %d type=%c progressive_frame=%d "
+			     "top_field_first=%d repeat_first_field=%d\n",
+			     log_count++, "?IPBD"[flags & PIC_MASK_CODING_TYPE],
+			     (flags & PIC_FLAG_PROGRESSIVE_FRAME) != 0,
+			     (flags & PIC_FLAG_TOP_FIELD_FIRST) != 0,
+			     (flags & PIC_FLAG_REPEAT_FIRST_FIELD) != 0);
+		}
 		if (output->draw)
 		    output->draw (output, info->display_fbuf->buf,
 				  info->display_fbuf->id);
@@ -796,5 +818,7 @@ int main (int argc, char ** argv)
 	output->close (output);
     print_fps (1);
     fclose (in_file);
+    if (log_file)
+	fclose (log_file);
     return 0;
 }
