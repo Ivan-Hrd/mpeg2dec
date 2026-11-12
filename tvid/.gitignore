@@ -1,0 +1,20 @@
+# Environnement Python (uv)
+.venv/
+__pycache__/
+*.pyc
+
+# Données et sorties générées (ne pas pousser)
+*.pgm
+*.ppm
+*.png
+*.log
+*.m2v
+*.ts
+*.pdf
+*.zip
+out*/
+
+# macOS / éditeurs
+.DS_Store
+.vscode/
+.idea/
