@@ -1,0 +1,9 @@
+[project]
+name = "tvid"
+version = "0.1.0"
+description = "Add your description here"
+requires-python = ">=3.14"
+dependencies = [
+    "numpy>=2.5.4",
+    "pygame-ce>=2.5.8",
+]
