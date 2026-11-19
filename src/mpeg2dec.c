@@ -137,7 +137,7 @@ static void print_usage (char ** argv)
     vo_driver_t const * drivers;
 
     fprintf (stderr, "usage: "
-	     "%s [-h] [-o <mode>] [-l <logfile>] [-s [<track>]] [-t <pid>] [-p] [-c] \\\n"
+	     "%s [-h] [-o <mode>] [-s [<track>]] [-t <pid>] [-p] [-c] \\\n"
 	     "\t\t[-v] [-b <bufsize>] <file>\n"
 	     "\t-h\tdisplay help and available video output modes\n"
 	     "\t-s\tuse program stream demultiplexer, "
@@ -147,7 +147,6 @@ static void print_usage (char ** argv)
 	     "\t-c\tuse c implementation, disables all accelerations\n"
 	     "\t-v\tverbose information about the MPEG stream\n"
 	     "\t-b\tset input buffer size, default 4096 bytes\n"
-	     "\t-l\twrite sequence and picture flags to <logfile>\n"
 	     "\t-o\tvideo output mode\n", argv[0]);
 
     drivers = vo_drivers ();
